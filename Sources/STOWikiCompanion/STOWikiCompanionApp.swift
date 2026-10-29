@@ -14,7 +14,7 @@ struct STOWikiCompanionApp: App {
     }
 }
 
-private enum InterfaceTheme: String, CaseIterable, Identifiable {
+enum InterfaceTheme: String, CaseIterable, Identifiable {
     case lcars
     case starfleet
     case hybrid
@@ -86,11 +86,11 @@ private enum InterfaceTheme: String, CaseIterable, Identifiable {
     }
 }
 
-private struct InterfaceThemeKey: EnvironmentKey {
+struct InterfaceThemeKey: EnvironmentKey {
     static let defaultValue = InterfaceTheme.lcars
 }
 
-private extension EnvironmentValues {
+extension EnvironmentValues {
     var interfaceTheme: InterfaceTheme {
         get { self[InterfaceThemeKey.self] }
         set { self[InterfaceThemeKey.self] = newValue }
