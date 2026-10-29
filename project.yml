@@ -21,7 +21,7 @@ targets:
       - package: GoogleMobileAds
         product: GoogleMobileAds
       - package: UserMessagingPlatform
-        product: UserMessagingPlatform
+        product: GoogleUserMessagingPlatform
     info:
       path: Info.plist
       properties:
