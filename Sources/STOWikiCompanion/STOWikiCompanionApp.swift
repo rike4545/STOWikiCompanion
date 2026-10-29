@@ -175,7 +175,6 @@ struct WikiSearchView: View {
             }
             .sheet(isPresented: $showingAppearance) {
                 AppearanceSettingsView()
-                    .environment(\.interfaceTheme, theme)
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
