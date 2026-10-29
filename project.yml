@@ -7,7 +7,7 @@ packages:
   GoogleMobileAds:
     url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
     from: 13.11.0
-  UserMessagingPlatform:
+  GoogleUserMessagingPlatform:
     url: https://github.com/googleads/swift-package-manager-google-user-messaging-platform.git
     from: 3.0.0
 
@@ -20,7 +20,7 @@ targets:
     dependencies:
       - package: GoogleMobileAds
         product: GoogleMobileAds
-      - package: UserMessagingPlatform
+      - package: GoogleUserMessagingPlatform
         product: GoogleUserMessagingPlatform
     info:
       path: Info.plist
