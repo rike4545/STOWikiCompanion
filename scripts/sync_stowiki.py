@@ -63,7 +63,7 @@ def sync_asset_manifest():
     while len(items) < MAX_ASSETS:
         params = {
             "action": "query", "list": "allimages", "ailimit": "max",
-            "aiprop": "name|timestamp|url|size|mime|sha1|user",
+            "aiprop": "timestamp|url|size|mime|sha1|user",
             "format": "json", "formatversion": "2"
         }
         params.update(continuation)
