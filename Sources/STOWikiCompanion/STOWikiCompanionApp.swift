@@ -23,65 +23,65 @@ private enum InterfaceTheme: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .lcars: "Classic LCARS"
-        case .starfleet: "Modern Starfleet"
-        case .hybrid: "LCARS Hybrid"
+        case .lcars: return "Classic LCARS"
+        case .starfleet: return "Modern Starfleet"
+        case .hybrid: return "LCARS Hybrid"
         }
     }
 
     var subtitle: String {
         switch self {
-        case .lcars: "Classic amber, gold, and violet computer panels"
-        case .starfleet: "Cool blue systems and cyan highlights"
-        case .hybrid: "Classic Star Trek character with modern iOS polish"
+        case .lcars: return "Classic amber, gold, and violet computer panels"
+        case .starfleet: return "Cool blue systems and cyan highlights"
+        case .hybrid: return "Classic Star Trek character with modern iOS polish"
         }
     }
 
     var symbol: String {
         switch self {
-        case .lcars: "rectangle.roundedtop"
-        case .starfleet: "sparkles"
-        case .hybrid: "square.grid.2x2"
+        case .lcars: return "rectangle.roundedtop"
+        case .starfleet: return "sparkles"
+        case .hybrid: return "square.grid.2x2"
         }
     }
 
     var background: Color {
         switch self {
-        case .lcars: Color(red: 0.035, green: 0.025, blue: 0.065)
-        case .starfleet: Color(red: 0.018, green: 0.045, blue: 0.085)
-        case .hybrid: Color(red: 0.025, green: 0.035, blue: 0.070)
+        case .lcars: return Color(red: 0.035, green: 0.025, blue: 0.065)
+        case .starfleet: return Color(red: 0.018, green: 0.045, blue: 0.085)
+        case .hybrid: return Color(red: 0.025, green: 0.035, blue: 0.070)
         }
     }
 
     var surface: Color {
         switch self {
-        case .lcars: Color(red: 0.105, green: 0.075, blue: 0.145)
-        case .starfleet: Color(red: 0.045, green: 0.095, blue: 0.155)
-        case .hybrid: Color(red: 0.055, green: 0.070, blue: 0.125)
+        case .lcars: return Color(red: 0.105, green: 0.075, blue: 0.145)
+        case .starfleet: return Color(red: 0.045, green: 0.095, blue: 0.155)
+        case .hybrid: return Color(red: 0.055, green: 0.070, blue: 0.125)
         }
     }
 
     var accent: Color {
         switch self {
-        case .lcars: Color(red: 1.0, green: 0.62, blue: 0.28)
-        case .starfleet: Color(red: 0.28, green: 0.78, blue: 1.0)
-        case .hybrid: Color(red: 1.0, green: 0.66, blue: 0.30)
+        case .lcars: return Color(red: 1.0, green: 0.62, blue: 0.28)
+        case .starfleet: return Color(red: 0.28, green: 0.78, blue: 1.0)
+        case .hybrid: return Color(red: 1.0, green: 0.66, blue: 0.30)
         }
     }
 
     var secondaryAccent: Color {
         switch self {
-        case .lcars: Color(red: 0.75, green: 0.55, blue: 0.95)
-        case .starfleet: Color(red: 0.25, green: 0.92, blue: 0.92)
-        case .hybrid: Color(red: 0.45, green: 0.78, blue: 1.0)
+        case .lcars: return Color(red: 0.75, green: 0.55, blue: 0.95)
+        case .starfleet: return Color(red: 0.25, green: 0.92, blue: 0.92)
+        case .hybrid: return Color(red: 0.45, green: 0.78, blue: 1.0)
         }
     }
 
     var panelShape: AnyShape {
         switch self {
-        case .lcars: AnyShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        case .starfleet: AnyShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        case .hybrid: AnyShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        case .lcars: return AnyShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        case .starfleet: return AnyShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        case .hybrid: return AnyShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         }
     }
 }
