@@ -431,7 +431,8 @@ private struct StarshipCatalogView: View {
                     .listRowBackground(theme.surface)
             } header: { Text("Ship registry • starter index") }
             Section("Known classes") {
-                ForEach(Array(filtered.enumerated()), id: \.offset) { _, ship in
+                ForEach(Array(filtered.enumerated()), id: \.offset) { entry in
+                    let ship = entry.element
                     VStack(alignment: .leading, spacing: 4) {
                         Text(ship.0).font(.headline).foregroundStyle(.white)
                         Text("\(ship.1) • \(ship.2)").font(.caption).foregroundStyle(.white.opacity(0.62))
@@ -467,9 +468,10 @@ private struct TraitsEquipmentLibraryView: View {
                 TextField("Find a trait or equipment category…", text: $search)
                     .listRowBackground(theme.surface)
             } header: { Text("Reference library") }
-            ForEach(categories.filter { category in
+            ForEach(Array(categories.filter { category in
                 search.isEmpty || (category.0 + category.2 + category.3.joined(separator: " ")).localizedCaseInsensitiveContains(search)
-            }, id: \.0) { category in
+            }.enumerated()), id: \.offset) { entry in
+                let category = entry.element
                 Section {
                     ForEach(category.3.filter { search.isEmpty || $0.localizedCaseInsensitiveContains(search) }, id: \.self) { item in
                         Link(destination: URL(string: "https://stowiki.net/wiki/" + item.replacingOccurrences(of: " ", with: "_"))!) {
