@@ -515,6 +515,7 @@ struct EventCampaignPlannerView: View {
     @ObservedObject private var store = AdvancedToolsStore.shared
     @State private var editing: EventCampaignRecord?
     @State private var showingEditor = false
+    @State private var reminderMessage: String?
 
     var body: some View {
         List {
@@ -541,6 +542,12 @@ struct EventCampaignPlannerView: View {
                             .font(.caption2).foregroundStyle(.white.opacity(0.6))
                         if !item.reward.isEmpty { Label(item.reward, systemImage: "gift").font(.caption).foregroundStyle(theme.secondaryAccent) }
                         HStack {
+                            Button {
+                                Task {
+                                    do { try await CampaignReminderService.shared.schedule(for: item); reminderMessage = "Campaign reminders scheduled." }
+                                    catch { reminderMessage = error.localizedDescription }
+                                }
+                            } label: { Label("Remind me", systemImage: "bell.badge") }
                             Button { var updated = item; updated.completedDays = max(0, updated.completedDays - 1); store.saveCampaign(updated) } label: { Label("− Day", systemImage: "minus") }
                             Button { var updated = item; updated.completedDays = min(updated.requiredDays, updated.completedDays + 1); store.saveCampaign(updated) } label: { Label("+ Day", systemImage: "plus") }
                         }.font(.caption)
@@ -553,6 +560,7 @@ struct EventCampaignPlannerView: View {
             }
         }
         .scrollContentBackground(.hidden).background(theme.background).tint(theme.accent)
+        .alert("Campaign reminders", isPresented: Binding(get: { reminderMessage != nil }, set: { if !$0 { reminderMessage = nil } })) { Button("OK") { reminderMessage = nil } } message: { Text(reminderMessage ?? "") }
         .sheet(isPresented: $showingEditor) {
             EventCampaignEditor(item: editing ?? EventCampaignRecord(name: "", startDate: Date(), endDate: Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date(), requiredDays: 20, completedDays: 0, reward: "", notes: ""))
         }
