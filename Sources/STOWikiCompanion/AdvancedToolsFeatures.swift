@@ -116,6 +116,14 @@ final class AdvancedToolsStore: ObservableObject {
         persist(loadouts, key: "advanced.loadouts")
     }
 
+    func importLoadouts(_ imported: [AdvancedShipLoadout]) {
+        for item in imported {
+            if let index = loadouts.firstIndex(where: { $0.id == item.id }) { loadouts[index] = item }
+            else { loadouts.insert(item, at: 0) }
+        }
+        persist(loadouts, key: "advanced.loadouts")
+    }
+
     func deleteLoadout(_ item: AdvancedShipLoadout) {
         loadouts.removeAll { $0.id == item.id }
         persist(loadouts, key: "advanced.loadouts")
@@ -198,6 +206,10 @@ struct AdvancedLoadoutView: View {
     @State private var editing: AdvancedShipLoadout?
     @State private var showingEditor = false
     @State private var showingComparison = false
+    @State private var showingImporter = false
+    @State private var archiveDocument: ShipLoadoutArchiveDocument?
+    @State private var exporting = false
+    @State private var archiveMessage: String?
 
     var body: some View {
         List {
@@ -205,6 +217,10 @@ struct AdvancedLoadoutView: View {
                 Button { editing = nil; showingEditor = true } label: { Label("Create detailed loadout", systemImage: "plus.circle.fill") }
                 Button { showingComparison = true } label: { Label("Compare two loadouts", systemImage: "arrow.left.arrow.right") }
                     .disabled(store.loadouts.count < 2)
+                Button { archiveDocument = ShipLoadoutArchiveDocument(loadouts: store.loadouts); exporting = true } label: { Label("Export loadouts", systemImage: "square.and.arrow.up") }
+                    .disabled(store.loadouts.isEmpty)
+                Button { showingImporter = true } label: { Label("Import loadouts", systemImage: "square.and.arrow.down") }
+                if let archiveMessage { Text(archiveMessage).font(.caption).foregroundStyle(.secondary) }
             }.listRowBackground(theme.surface)
             Section("Saved loadouts • \(store.loadouts.count)") {
                 if store.loadouts.isEmpty {
@@ -228,6 +244,20 @@ struct AdvancedLoadoutView: View {
             AdvancedLoadoutEditor(item: editing ?? AdvancedShipLoadout(name: "", ship: "", captain: "", role: "Damage", specialization: "None"))
         }
         .sheet(isPresented: $showingComparison) { LoadoutComparisonView() }
+        .fileExporter(isPresented: $exporting, document: archiveDocument, contentType: .json, defaultFilename: "STOWiki-Loadouts") { result in
+            switch result { case .success(let url): archiveMessage = "Exported loadouts to \\(url.lastPathComponent)."; case .failure(let error): archiveMessage = error.localizedDescription }
+        }
+        .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.json], allowsMultipleSelection: false) { result in
+            do {
+                guard let url = try result.get().first else { return }
+                let accessing = url.startAccessingSecurityScopedResource()
+                defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+                let archive = try JSONDecoder().decode(ShipLoadoutArchive.self, from: Data(contentsOf: url))
+                guard archive.formatVersion == 1 else { throw NSError(domain: "STOWikiLoadoutArchive", code: 1, userInfo: [NSLocalizedDescriptionKey: "Unsupported archive version."]) }
+                store.importLoadouts(archive.loadouts)
+                archiveMessage = "Imported \\(archive.loadouts.count) loadouts."
+            } catch { archiveMessage = error.localizedDescription }
+        }
     }
 }
 
@@ -485,6 +515,7 @@ struct EventCampaignPlannerView: View {
     @ObservedObject private var store = AdvancedToolsStore.shared
     @State private var editing: EventCampaignRecord?
     @State private var showingEditor = false
+    @State private var reminderMessage: String?
 
     var body: some View {
         List {
@@ -511,6 +542,12 @@ struct EventCampaignPlannerView: View {
                             .font(.caption2).foregroundStyle(.white.opacity(0.6))
                         if !item.reward.isEmpty { Label(item.reward, systemImage: "gift").font(.caption).foregroundStyle(theme.secondaryAccent) }
                         HStack {
+                            Button {
+                                Task {
+                                    do { try await CampaignReminderService.shared.schedule(for: item); reminderMessage = "Campaign reminders scheduled." }
+                                    catch { reminderMessage = error.localizedDescription }
+                                }
+                            } label: { Label("Remind me", systemImage: "bell.badge") }
                             Button { var updated = item; updated.completedDays = max(0, updated.completedDays - 1); store.saveCampaign(updated) } label: { Label("− Day", systemImage: "minus") }
                             Button { var updated = item; updated.completedDays = min(updated.requiredDays, updated.completedDays + 1); store.saveCampaign(updated) } label: { Label("+ Day", systemImage: "plus") }
                         }.font(.caption)
@@ -523,6 +560,7 @@ struct EventCampaignPlannerView: View {
             }
         }
         .scrollContentBackground(.hidden).background(theme.background).tint(theme.accent)
+        .alert("Campaign reminders", isPresented: Binding(get: { reminderMessage != nil }, set: { if !$0 { reminderMessage = nil } })) { Button("OK") { reminderMessage = nil } } message: { Text(reminderMessage ?? "") }
         .sheet(isPresented: $showingEditor) {
             EventCampaignEditor(item: editing ?? EventCampaignRecord(name: "", startDate: Date(), endDate: Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date(), requiredDays: 20, completedDays: 0, reward: "", notes: ""))
         }
