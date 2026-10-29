@@ -39,7 +39,7 @@ final class AdMobConsentManager: ObservableObject {
 
                 guard self.canRequestAds, !self.didStartAdsSDK else { return }
                 self.didStartAdsSDK = true
-                MobileAds.shared.start()
+                await MobileAds.shared.start()
             }
         }
     }
