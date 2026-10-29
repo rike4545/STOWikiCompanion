@@ -4,7 +4,8 @@ Native iOS companion and scheduled content mirror for https://stowiki.net/.
 
 ## Repository contents
 
-- `Sources/STOWikiCompanion/STOWikiCompanionApp.swift`: native SwiftUI wiki search starter.
+- `Sources/STOWikiCompanion/STOWikiCompanionApp.swift`: native SwiftUI wiki search, appearance controls, and AdMob integration.
+- `Sources/STOWikiCompanion/CompanionFeatures.swift`: persistent companion hub with offline bookmarks/article cache, search history, starship index, traits/equipment reference links, ship-build planner, captain roster, and mission/reputation/endeavor progress tracker.
 - `project.yml`: XcodeGen project definition, targeting iOS 17+.
 - `scripts/sync_stowiki.py`: exports main-namespace page text, recent changes, and uploaded-media metadata; downloads media files from approved source hosts.
 - `.github/workflows/sync-wiki.yml`: scheduled mirror and manual sync.
@@ -40,7 +41,7 @@ The sync uses the MediaWiki Action API, pagination, a descriptive user agent, re
 
 These safeguards prevent a scheduled run from unexpectedly consuming unlimited storage. If the summary or manifest reports truncation, skipped hosts, size limits, or failed downloads, the artifact is not a guaranteed complete mirror. You can adjust `STOWIKI_MAX_ASSETS`, `STOWIKI_MAX_TOTAL_MB`, `STOWIKI_MAX_FILE_MB`, and `STOWIKI_API_DELAY_SECONDS` in the workflow after checking repository storage and source-site capacity. Files served by a different host must be explicitly reviewed before adding that host to the allowlist.
 
-The export does not include every possible site component: site CSS/JavaScript, templates as editable source, private/restricted pages, raw revision histories, or externally embedded media that the API does not list. The native iOS app is still a starter search UI; the mirror pipeline is a separate automated export.
+The export does not include every possible site component: site CSS/JavaScript, templates as editable source, private/restricted pages, raw revision histories, or externally embedded media that the API does not list. The native iOS app now includes a local companion workspace. Bookmarks, downloaded plain-text article extracts, recent searches, builds, captain profiles, and progress records are stored on-device. The ship and reference indexes are curated starter lists that link back to the wiki; they are not a complete live game-data catalogue. The scheduled mirror artifact remains a separate export and is not yet automatically imported by the app. Offline article caching is per bookmarked article and requires a successful wiki API request at least once.
 
 ## Generate the Xcode project
 
@@ -48,7 +49,7 @@ Install XcodeGen (for example, with Homebrew), then from the repository root run
 
     xcodegen generate
 
-Open `STOWikiCompanion.xcodeproj` in Xcode. Set your development team if installing on a device, then run on an iOS 17+ simulator or device.
+Open `STOWikiCompanion.xcodeproj` in Xcode. Set your development team if installing on a device, then run on an iOS 17+ simulator or device. The companion hub is available from the grid button in the main search header.
 
 ## API endpoint
 
