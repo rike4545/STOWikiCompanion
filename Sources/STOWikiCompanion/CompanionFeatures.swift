@@ -288,7 +288,8 @@ private struct CompanionOverviewView: View {
 private struct OfflineLibraryView: View {
     @Environment(\.interfaceTheme) private var theme
     @ObservedObject private var store = CompanionStore.shared
-    @State private var showingHistory = false
+    @State private var downloading: Set<String> = []
+    @State private var downloadErrors: [String: String] = [:]
 
     var body: some View {
         List {
@@ -304,8 +305,25 @@ private struct OfflineLibraryView: View {
                         HStack {
                             Label(page.extract == nil ? "Snippet saved" : "Offline text saved", systemImage: page.extract == nil ? "text.alignleft" : "checkmark.icloud")
                             Spacer()
+                            if page.extract == nil {
+                                Button {
+                                    Task { await cacheArticle(page) }
+                                } label: {
+                                    if downloading.contains(page.title) {
+                                        ProgressView().tint(theme.accent)
+                                    } else {
+                                        Label("Save offline", systemImage: "arrow.down.circle")
+                                    }
+                                }
+                                .disabled(downloading.contains(page.title))
+                            } else {
+                                Label("Available offline", systemImage: "checkmark.circle.fill")
+                            }
                             Link("Open", destination: page.sourceURL)
                         }.font(.caption2).foregroundStyle(theme.accent)
+                        if let error = downloadErrors[page.title] {
+                            Text(error).font(.caption2).foregroundStyle(.red)
+                        }
                     }
                     .listRowBackground(theme.surface)
                     .swipeActions {
@@ -328,6 +346,54 @@ private struct OfflineLibraryView: View {
         .background(theme.background)
         .tint(theme.accent)
     }
+
+    @MainActor
+    private func cacheArticle(_ page: WikiSavedPage) async {
+        downloading.insert(page.title)
+        downloadErrors[page.title] = nil
+        defer { downloading.remove(page.title) }
+
+        var components = URLComponents(string: "https://stowiki.net/w/api.php")!
+        components.queryItems = [
+            URLQueryItem(name: "action", value: "query"),
+            URLQueryItem(name: "prop", value: "extracts"),
+            URLQueryItem(name: "explaintext", value: "1"),
+            URLQueryItem(name: "titles", value: page.title),
+            URLQueryItem(name: "format", value: "json"),
+            URLQueryItem(name: "formatversion", value: "2")
+        ]
+        guard let url = components.url else {
+            downloadErrors[page.title] = "Could not create the wiki request."
+            return
+        }
+        do {
+            var request = URLRequest(url: url)
+            request.setValue("STOWikiCompanion/1.0 (read-only iOS client)", forHTTPHeaderField: "User-Agent")
+            request.setValue("application/json", forHTTPHeaderField: "Accept")
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+                throw URLError(.badServerResponse)
+            }
+            let payload = try JSONDecoder().decode(OfflineExtractResponse.self, from: data)
+            guard let extract = payload.query?.pages.first?.extract, !extract.isEmpty else {
+                downloadErrors[page.title] = "The wiki returned no article text."
+                return
+            }
+            store.updateOfflineText(title: page.title, extract: extract)
+        } catch {
+            downloadErrors[page.title] = "Could not cache this article. Check your connection and retry."
+        }
+    }
+}
+
+private struct OfflineExtractResponse: Decodable {
+    struct Query: Decodable {
+        struct Page: Decodable {
+            let extract: String?
+        }
+        let pages: [Page]
+    }
+    let query: Query?
 }
 
 private struct StarshipCatalogView: View {
@@ -362,7 +428,7 @@ private struct StarshipCatalogView: View {
                     .listRowBackground(theme.surface)
             } header: { Text("Ship registry • starter index") }
             Section("Known classes") {
-                ForEach(filtered, id: \.0) { ship in
+                ForEach(Array(filtered.enumerated()), id: \.offset) { _, ship in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(ship.0).font(.headline).foregroundStyle(.white)
                         Text("\(ship.1) • \(ship.2)").font(.caption).foregroundStyle(.white.opacity(0.62))
