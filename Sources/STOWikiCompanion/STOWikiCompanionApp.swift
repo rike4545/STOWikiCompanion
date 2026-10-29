@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import GoogleMobileAds
 
 @main
 struct STOWikiCompanionApp: App {
@@ -10,6 +11,7 @@ struct STOWikiCompanionApp: App {
             WikiSearchView()
                 .environment(\.interfaceTheme, InterfaceTheme(rawValue: selectedTheme) ?? .lcars)
                 .preferredColorScheme(.dark)
+                .task { await AdMobConsentManager.shared.startIfNeeded() }
         }
     }
 }
@@ -97,6 +99,26 @@ extension EnvironmentValues {
     }
 }
 
+private enum WikiAPIError: LocalizedError {
+    case httpStatus(Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .httpStatus(let status):
+            if status == 403 || status == 503 {
+                return "The wiki server is temporarily refusing API requests (HTTP \(status)). The site may be undergoing maintenance. Try again later, or open the wiki website below."
+            }
+            if status == 429 {
+                return "The wiki is receiving too many requests right now (HTTP 429). Please wait a moment and try again."
+            }
+            if status >= 500 {
+                return "The wiki server reported a temporary problem (HTTP \(status)). Please try again later."
+            }
+            return "The wiki server returned HTTP \(status). Please try again later."
+        }
+    }
+}
+
 private struct SearchResponse: Decodable {
     let query: QueryPayload?
     struct QueryPayload: Decodable {
@@ -157,12 +179,37 @@ struct WikiSearchView: View {
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else if let errorMessage {
-                            ContentUnavailableView(
-                                "Database Unavailable",
-                                systemImage: "antenna.radiowaves.left.and.right.slash",
-                                description: Text(errorMessage)
-                            )
-                            .foregroundStyle(.white)
+                            VStack(spacing: 16) {
+                                Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                                    .font(.system(size: 36, weight: .medium))
+                                    .foregroundStyle(theme.secondaryAccent)
+                                Text("Couldn’t reach the wiki")
+                                    .font(.system(.title3, design: .rounded, weight: .bold))
+                                    .foregroundStyle(.white)
+                                Text(errorMessage)
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.68))
+                                    .multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button {
+                                    Task { await search() }
+                                } label: {
+                                    Label("Try Again", systemImage: "arrow.clockwise")
+                                        .font(.system(.headline, design: .rounded))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(theme.accent, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                                        .foregroundStyle(theme.background)
+                                }
+                                .disabled(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+                                Link(destination: URL(string: "https://stowiki.net")!) {
+                                    Label("Open STO Wiki Website", systemImage: "safari")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(theme.accent)
+                                }
+                            }
+                            .padding(.horizontal, 28)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else if results.isEmpty {
                             emptyState
                         } else {
@@ -320,6 +367,8 @@ struct WikiSearchView: View {
                     quickSearch("Equipment", symbol: "wrench.and.screwdriver", query: "equipment")
                     quickSearch("Missions", symbol: "map", query: "mission")
                 }
+
+                NativeAdCard()
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -376,7 +425,7 @@ struct WikiSearchView: View {
                 .padding(.horizontal, 2)
                 .padding(.bottom, 3)
 
-                ForEach(results) { hit in
+                ForEach(Array(results.enumerated()), id: \.element.id) { index, hit in
                     Link(destination: hit.url) {
                         HStack(alignment: .top, spacing: 12) {
                             RoundedRectangle(cornerRadius: 3)
@@ -421,6 +470,10 @@ struct WikiSearchView: View {
                         }
                     }
                     .buttonStyle(.plain)
+
+                    if index == 2 {
+                        NativeAdCard()
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -459,7 +512,7 @@ struct WikiSearchView: View {
         errorMessage = nil
         defer { isLoading = false }
 
-        var components = URLComponents(string: "https://stowiki.net/api.php")!
+        var components = URLComponents(string: "https://stowiki.net/w/api.php")!
         components.queryItems = [
             URLQueryItem(name: "action", value: "query"),
             URLQueryItem(name: "list", value: "search"),
@@ -479,8 +532,11 @@ struct WikiSearchView: View {
             request.setValue("STOWikiCompanion/1.0 (read-only iOS client)", forHTTPHeaderField: "User-Agent")
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            guard let http = response as? HTTPURLResponse else {
                 throw URLError(.badServerResponse)
+            }
+            guard (200..<300).contains(http.statusCode) else {
+                throw WikiAPIError.httpStatus(http.statusCode)
             }
             results = try JSONDecoder().decode(SearchResponse.self, from: data).query?.search ?? []
             if results.isEmpty {
@@ -488,7 +544,13 @@ struct WikiSearchView: View {
             }
         } catch {
             results = []
-            errorMessage = "The wiki API may be temporarily unavailable. \(error.localizedDescription)"
+            if let wikiError = error as? WikiAPIError {
+                errorMessage = wikiError.localizedDescription
+            } else if let urlError = error as? URLError {
+                errorMessage = "A network error occurred (\(urlError.code.rawValue)): \(urlError.localizedDescription). Check your connection and try again."
+            } else {
+                errorMessage = "The wiki request failed: \(error.localizedDescription)"
+            }
         }
     }
 }
@@ -497,6 +559,7 @@ private struct AppearanceSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.interfaceTheme) private var theme
     @AppStorage("appearance.theme") private var selectedTheme = InterfaceTheme.lcars.rawValue
+    @ObservedObject private var consentManager = AdMobConsentManager.shared
 
     var body: some View {
         NavigationStack {
@@ -520,6 +583,20 @@ private struct AppearanceSettingsView: View {
 
                         ForEach(InterfaceTheme.allCases) { option in
                             themeCard(option)
+                        }
+
+                        if consentManager.privacyOptionsRequired {
+                            Button {
+                                Task { await consentManager.presentPrivacyOptions() }
+                            } label: {
+                                Label("Privacy & Ad Choices", systemImage: "hand.raised")
+                                    .font(.system(.headline, design: .rounded))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(15)
+                                    .background(theme.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                            }
+                            .foregroundStyle(theme.accent)
+                            .accessibilityHint("Review or change your advertising privacy choices.")
                         }
                     }
                     .padding(20)

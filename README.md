@@ -52,4 +52,4 @@ Open `STOWikiCompanion.xcodeproj` in Xcode. Set your development team if install
 
 ## API endpoint
 
-The sync assumes `https://stowiki.net/api.php` supports the standard MediaWiki Action API and anonymous access. If the endpoint returns an error, disables access, or changes its schema, the workflow fails visibly rather than bypassing the site's controls.
+The app and sync use `https://stowiki.net/w/api.php` as the MediaWiki Action API endpoint. If the endpoint returns an error, disables access, or changes its schema, the workflow fails visibly rather than bypassing the site's controls. If the endpoint returns an error, disables access, or changes its schema, the workflow fails visibly rather than bypassing the site's controls.
