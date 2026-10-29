@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import GoogleMobileAds
 
 @main
 struct STOWikiCompanionApp: App {
@@ -10,6 +11,7 @@ struct STOWikiCompanionApp: App {
             WikiSearchView()
                 .environment(\.interfaceTheme, InterfaceTheme(rawValue: selectedTheme) ?? .lcars)
                 .preferredColorScheme(.dark)
+                .task { await AdMobConsentManager.shared.startIfNeeded() }
         }
     }
 }
@@ -320,6 +322,8 @@ struct WikiSearchView: View {
                     quickSearch("Equipment", symbol: "wrench.and.screwdriver", query: "equipment")
                     quickSearch("Missions", symbol: "map", query: "mission")
                 }
+
+                NativeAdCard()
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -376,7 +380,7 @@ struct WikiSearchView: View {
                 .padding(.horizontal, 2)
                 .padding(.bottom, 3)
 
-                ForEach(results) { hit in
+                ForEach(Array(results.enumerated()), id: \.element.id) { index, hit in
                     Link(destination: hit.url) {
                         HStack(alignment: .top, spacing: 12) {
                             RoundedRectangle(cornerRadius: 3)
@@ -421,6 +425,10 @@ struct WikiSearchView: View {
                         }
                     }
                     .buttonStyle(.plain)
+
+                    if index == 2 {
+                        NativeAdCard()
+                    }
                 }
             }
             .padding(.horizontal, 20)
@@ -497,6 +505,7 @@ private struct AppearanceSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.interfaceTheme) private var theme
     @AppStorage("appearance.theme") private var selectedTheme = InterfaceTheme.lcars.rawValue
+    @ObservedObject private var consentManager = AdMobConsentManager.shared
 
     var body: some View {
         NavigationStack {
@@ -520,6 +529,20 @@ private struct AppearanceSettingsView: View {
 
                         ForEach(InterfaceTheme.allCases) { option in
                             themeCard(option)
+                        }
+
+                        if consentManager.privacyOptionsRequired {
+                            Button {
+                                Task { await consentManager.presentPrivacyOptions() }
+                            } label: {
+                                Label("Privacy & Ad Choices", systemImage: "hand.raised")
+                                    .font(.system(.headline, design: .rounded))
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(15)
+                                    .background(theme.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                            }
+                            .foregroundStyle(theme.accent)
+                            .accessibilityHint("Review or change your advertising privacy choices.")
                         }
                     }
                     .padding(20)
