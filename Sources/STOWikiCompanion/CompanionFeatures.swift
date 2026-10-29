@@ -168,6 +168,7 @@ struct CompanionHubView: View {
         ("Overview", "square.grid.2x2"),
         ("Offline Wiki", "bookmark"),
         ("Starships", "airplane"),
+        ("Traits & Gear", "sparkles"),
         ("Build Planner", "wrench.and.screwdriver"),
         ("Captains", "person.crop.rectangle.stack"),
         ("Progress", "checklist")
@@ -202,6 +203,7 @@ struct CompanionHubView: View {
                         switch selectedSection {
                         case "Offline Wiki": OfflineLibraryView()
                         case "Starships": StarshipCatalogView()
+                        case "Traits & Gear": TraitsEquipmentLibraryView()
                         case "Build Planner": BuildPlannerView()
                         case "Captains": CaptainRosterView()
                         case "Progress": ProgressTrackerView()
@@ -250,6 +252,7 @@ private struct CompanionOverviewView: View {
                 VStack(spacing: 9) {
                     dashboardLink("Offline Wiki", subtitle: "Bookmarks, cached articles, recent searches", icon: "book.closed")
                     dashboardLink("Starships", subtitle: "Browse a starter catalog and jump to wiki records", icon: "airplane")
+                    dashboardLink("Traits & Gear", subtitle: "Quick-reference traits, consoles, weapons, and equipment", icon: "sparkles")
                     dashboardLink("Build Planner", subtitle: "Save weapons, consoles, traits, and notes", icon: "wrench.and.screwdriver")
                     dashboardLink("Captains", subtitle: "Maintain multiple character profiles", icon: "person.crop.rectangle.stack")
                     dashboardLink("Progress", subtitle: "Track missions, endeavors, events, and reputation", icon: "checklist")
@@ -443,6 +446,51 @@ private struct StarshipCatalogView: View {
             }
         }
         .scrollContentBackground(.hidden).background(theme.background).tint(theme.accent)
+    }
+}
+
+private struct TraitsEquipmentLibraryView: View {
+    @Environment(\.interfaceTheme) private var theme
+    @State private var search = ""
+
+    private let categories: [(String, String, String, [String])] = [
+        ("Traits", "sparkles", "Personal, starship, reputation, and space traits", ["Personal Traits", "Starship Traits", "Space Reputation Traits", "Ground Traits"]),
+        ("Weapons", "scope", "Energy weapons, projectiles, and firing modes", ["Energy Weapons", "Beam Arrays", "Dual Cannons", "Torpedoes"]),
+        ("Consoles", "square.grid.3x3", "Engineering, science, tactical, and universal consoles", ["Engineering Consoles", "Science Consoles", "Tactical Consoles", "Universal Consoles"]),
+        ("Equipment", "shippingbox", "Deflectors, engines, shields, and devices", ["Deflectors", "Impulse Engines", "Shields", "Devices", "Hangar Pets"]),
+        ("Reputation", "medal", "Reputation systems and set equipment", ["Reputation System", "Reputation Projects", "Reputation Equipment"])
+    ]
+
+    var body: some View {
+        List {
+            Section {
+                TextField("Find a trait or equipment category…", text: $search)
+                    .listRowBackground(theme.surface)
+            } header: { Text("Reference library") }
+            ForEach(categories.filter { category in
+                search.isEmpty || (category.0 + category.2 + category.3.joined(separator: " ")).localizedCaseInsensitiveContains(search)
+            }, id: \.0) { category in
+                Section {
+                    ForEach(category.3.filter { search.isEmpty || $0.localizedCaseInsensitiveContains(search) }, id: \.self) { item in
+                        Link(destination: URL(string: "https://stowiki.net/wiki/" + item.replacingOccurrences(of: " ", with: "_"))!) {
+                            HStack {
+                                Text(item).foregroundStyle(.white)
+                                Spacer()
+                                Image(systemName: "arrow.up.right").font(.caption).foregroundStyle(theme.accent)
+                            }
+                        }
+                        .listRowBackground(theme.surface)
+                    }
+                } header: {
+                    Label(category.0, systemImage: category.1)
+                } footer: {
+                    Text(category.2)
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(theme.background)
+        .tint(theme.accent)
     }
 }
 
