@@ -1,0 +1,20 @@
+name: STOWikiCompanion
+options:
+  bundleIdPrefix: net.stowiki
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  STOWikiCompanion:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/STOWikiCompanion
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: net.stowiki.companion
+        PRODUCT_NAME: STO Wiki Companion
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: STO Wiki
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
