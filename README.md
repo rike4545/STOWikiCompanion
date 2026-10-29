@@ -5,6 +5,7 @@ Native iOS companion and scheduled change index for https://stowiki.net/.
 ## Repository contents
 
 - Sources/STOWikiCompanion/STOWikiCompanionApp.swift: native SwiftUI wiki search starter.
+- project.yml: XcodeGen project definition, targeting iOS 17+.
 - scripts/sync_stowiki.py: refreshes recent-change metadata and an image/file manifest from the MediaWiki API.
 - .github/workflows/sync-wiki.yml: scheduled workflow and manual sync.
 - data/recent-changes.json: recent changes returned by the API.
@@ -22,12 +23,13 @@ The wiki's copyright policy distinguishes community-authored content from Star T
 
 Reference: https://sto.fandom.com/wiki/STOWiki:Policy/Copyright. Verify the current stowiki.net site's own terms and API availability before publishing or distributing an app.
 
-## Build the iOS app
+## Generate the Xcode project
 
-1. Open Xcode and create an iOS App project named STOWikiCompanion using SwiftUI.
-2. Set the deployment target to iOS 17 or later.
-3. Replace the generated app entry point with the Swift file in Sources/STOWikiCompanion/.
-4. Run on an iPhone simulator or device.
+Install XcodeGen (for example, with Homebrew), then from the repository root run:
+
+    xcodegen generate
+
+Open STOWikiCompanion.xcodeproj in Xcode. Set your development team if installing on a device, then run on an iOS 17+ simulator or device.
 
 This starter is intentionally small. A production app should add persistent bookmarks, cached article extracts, richer native article formatting, attribution and license display, tests, and a privacy policy.
 
