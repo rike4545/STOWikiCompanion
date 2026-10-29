@@ -563,7 +563,8 @@ struct WikiSearchView: View {
             guard (200..<300).contains(http.statusCode) else {
                 throw WikiAPIError.httpStatus(http.statusCode)
             }
-            results = try JSONDecoder().decode(SearchResponse.self, from: data).query?.search ?? []\n            CompanionStore.shared.recordSearch(term)
+            results = try JSONDecoder().decode(SearchResponse.self, from: data).query?.search ?? []
+            CompanionStore.shared.recordSearch(term)
             if results.isEmpty {
                 errorMessage = nil
             }
