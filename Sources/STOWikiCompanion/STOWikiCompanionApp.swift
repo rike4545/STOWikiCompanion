@@ -99,6 +99,26 @@ extension EnvironmentValues {
     }
 }
 
+private enum WikiAPIError: LocalizedError {
+    case httpStatus(Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .httpStatus(let status):
+            if status == 403 || status == 503 {
+                return "The wiki server is temporarily refusing API requests (HTTP \(status)). The site may be undergoing maintenance. Try again later, or open the wiki website below."
+            }
+            if status == 429 {
+                return "The wiki is receiving too many requests right now (HTTP 429). Please wait a moment and try again."
+            }
+            if status >= 500 {
+                return "The wiki server reported a temporary problem (HTTP \(status)). Please try again later."
+            }
+            return "The wiki server returned HTTP \(status). Please try again later."
+        }
+    }
+}
+
 private struct SearchResponse: Decodable {
     let query: QueryPayload?
     struct QueryPayload: Decodable {
@@ -159,12 +179,37 @@ struct WikiSearchView: View {
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else if let errorMessage {
-                            ContentUnavailableView(
-                                "Database Unavailable",
-                                systemImage: "antenna.radiowaves.left.and.right.slash",
-                                description: Text(errorMessage)
-                            )
-                            .foregroundStyle(.white)
+                            VStack(spacing: 16) {
+                                Image(systemName: "antenna.radiowaves.left.and.right.slash")
+                                    .font(.system(size: 36, weight: .medium))
+                                    .foregroundStyle(theme.secondaryAccent)
+                                Text("Couldn’t reach the wiki")
+                                    .font(.system(.title3, design: .rounded, weight: .bold))
+                                    .foregroundStyle(.white)
+                                Text(errorMessage)
+                                    .font(.body)
+                                    .foregroundStyle(.white.opacity(0.68))
+                                    .multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button {
+                                    Task { await search() }
+                                } label: {
+                                    Label("Try Again", systemImage: "arrow.clockwise")
+                                        .font(.system(.headline, design: .rounded))
+                                        .frame(maxWidth: .infinity)
+                                        .padding(.vertical, 12)
+                                        .background(theme.accent, in: RoundedRectangle(cornerRadius: 13, style: .continuous))
+                                        .foregroundStyle(theme.background)
+                                }
+                                .disabled(searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
+                                Link(destination: URL(string: "https://stowiki.net")!) {
+                                    Label("Open STO Wiki Website", systemImage: "safari")
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(theme.accent)
+                                }
+                            }
+                            .padding(.horizontal, 28)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else if results.isEmpty {
                             emptyState
                         } else {
@@ -487,8 +532,11 @@ struct WikiSearchView: View {
             request.setValue("STOWikiCompanion/1.0 (read-only iOS client)", forHTTPHeaderField: "User-Agent")
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             let (data, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            guard let http = response as? HTTPURLResponse else {
                 throw URLError(.badServerResponse)
+            }
+            guard (200..<300).contains(http.statusCode) else {
+                throw WikiAPIError.httpStatus(http.statusCode)
             }
             results = try JSONDecoder().decode(SearchResponse.self, from: data).query?.search ?? []
             if results.isEmpty {
@@ -496,7 +544,13 @@ struct WikiSearchView: View {
             }
         } catch {
             results = []
-            errorMessage = "The wiki API may be temporarily unavailable. \(error.localizedDescription)"
+            if let wikiError = error as? WikiAPIError {
+                errorMessage = wikiError.localizedDescription
+            } else if let urlError = error as? URLError {
+                errorMessage = "A network error occurred (\(urlError.code.rawValue)): \(urlError.localizedDescription). Check your connection and try again."
+            } else {
+                errorMessage = "The wiki request failed: \(error.localizedDescription)"
+            }
         }
     }
 }
