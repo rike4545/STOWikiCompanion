@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import Combine
 
 // MARK: - Fleet operations data
 
@@ -248,8 +249,13 @@ struct CooldownPlannerView: View {
                             Text(item.category).font(.caption).foregroundStyle(theme.secondaryAccent)
                             Text(item.readyAt, style: .date).font(.caption2).foregroundStyle(.white.opacity(0.7))
                             Text(item.readyAt, style: .time).font(.caption2).foregroundStyle(.white.opacity(0.7))
-                            Text(item.readyAt <= now ? "Ready to claim or start" : item.readyAt, style: item.readyAt <= now ? .relative : .relative)
-                                .font(.caption.weight(.semibold)).foregroundStyle(theme.accent)
+                            if item.readyAt <= now {
+                                Text("Ready to claim or start")
+                                    .font(.caption.weight(.semibold)).foregroundStyle(.green)
+                            } else {
+                                Text(item.readyAt, style: .relative)
+                                    .font(.caption.weight(.semibold)).foregroundStyle(theme.accent)
+                            }
                             if !item.notes.isEmpty {
                                 Text(item.notes).font(.caption2).foregroundStyle(.white.opacity(0.5)).lineLimit(2)
                             }
