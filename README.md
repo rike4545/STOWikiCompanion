@@ -53,7 +53,7 @@ Install XcodeGen (for example, with Homebrew), then from the repository root run
 
     xcodegen generate
 
-Open `STOWikiCompanion.xcodeproj` in Xcode. Set your development team if installing on a device, then run on an iOS 17+ simulator or device. The companion hub is available from the grid button in the main search header.
+Open `STOWikiCompanion.xcodeproj` in Xcode. Set your development team if installing on a device, then run on an iOS 17+ simulator or device. The companion hub is available from the grid button in the main search header. Its **Command Center** dashboard summarizes a selected captain, saved loadouts, open objectives, inventory targets, active cooldowns, fleet projects, crafting plans, and upcoming campaign deadlines, with quick links into each workspace. Dashboard totals reflect locally recorded data and are not synchronized with live game servers.
 
 ## API endpoint
 
