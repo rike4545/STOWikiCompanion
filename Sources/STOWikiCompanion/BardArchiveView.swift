@@ -97,7 +97,8 @@ struct BardArchiveView: View {
     private var transmissionsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             sectionHeading("HIDDEN TRANSMISSIONS", symbol: "play.rectangle")
-            ForEach(Array(transmissions.enumerated()), id: \.offset) { _, item in
+            ForEach(transmissions.indices, id: \.self) { index in
+                let item = transmissions[index]
                 Link(destination: item.url) {
                     HStack(spacing: 12) {
                         Image(systemName: "play.fill")
