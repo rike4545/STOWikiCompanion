@@ -1,0 +1,43 @@
+name: iOS Simulator Build
+
+on:
+  pull_request:
+    paths:
+      - "Sources/**"
+      - "project.yml"
+      - "Info.plist"
+      - ".github/workflows/ios-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-build-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator-build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Resolve Swift packages
+        run: xcodebuild -resolvePackageDependencies -project STOWikiCompanion.xcodeproj -scheme STOWikiCompanion
+
+      - name: Build for iOS Simulator
+        run: >-
+          xcodebuild
+          -project STOWikiCompanion.xcodeproj
+          -scheme STOWikiCompanion
+          -destination 'generic/platform=iOS Simulator'
+          CODE_SIGNING_ALLOWED=NO
+          build

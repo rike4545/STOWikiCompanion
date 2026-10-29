@@ -177,6 +177,10 @@ struct CompanionHubView: View {
         ("Reputation", "medal"),
         ("Fleet Projects", "building.2"),
         ("Exchange", "chart.line.uptrend.xyaxis"),
+        ("Advanced Loadouts", "ship"),
+        ("Crafting", "hammer"),
+        ("Event Campaigns", "calendar"),
+        ("Wiki Catalog", "books.vertical"),
         ("Progress", "checklist")
     ]
 
@@ -219,6 +223,10 @@ struct CompanionHubView: View {
                         case "Reputation": ReputationManagerView()
                         case "Fleet Projects": FleetProjectBoardView()
                         case "Exchange": ExchangeNotebookView()
+                        case "Advanced Loadouts": AdvancedLoadoutView()
+                        case "Crafting": CraftingPlannerView()
+                        case "Event Campaigns": EventCampaignPlannerView()
+                        case "Wiki Catalog": WikiMirrorCatalogView()
                         case "Progress": ProgressTrackerView()
                         default: CompanionOverviewView(onSelect: { selectedSection = $0 })
                         }
@@ -274,6 +282,10 @@ private struct CompanionOverviewView: View {
                     dashboardLink("Reputation", subtitle: "Track tiers, marks, and active daily projects", icon: "medal")
                     dashboardLink("Fleet Projects", subtitle: "Monitor holdings, contributions, and goals", icon: "building.2")
                     dashboardLink("Exchange", subtitle: "Record EC prices and compare batch values", icon: "chart.line.uptrend.xyaxis")
+                    dashboardLink("Advanced Loadouts", subtitle: "Structured equipment slots and side-by-side comparisons", icon: "ship")
+                    dashboardLink("Crafting", subtitle: "Recipe materials and shortage calculations", icon: "hammer")
+                    dashboardLink("Event Campaigns", subtitle: "Track event days, dates, and reward milestones", icon: "calendar")
+                    dashboardLink("Wiki Catalog", subtitle: "Import and search the downloadable wiki mirror offline", icon: "books.vertical")
                     dashboardLink("Progress", subtitle: "Track missions, endeavors, events, and reputation", icon: "checklist")
                 }
             }
