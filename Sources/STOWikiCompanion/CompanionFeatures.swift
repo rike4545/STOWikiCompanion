@@ -181,7 +181,8 @@ struct CompanionHubView: View {
                 VStack(spacing: 0) {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            ForEach(sections, id: \.0) { section in
+                            ForEach(Array(sections.enumerated()), id: \.offset) { entry in
+                                let section = entry.element
                                 Button {
                                     selectedSection = section.0
                                 } label: {
