@@ -9,6 +9,7 @@ Native iOS companion and scheduled content mirror for https://stowiki.net/.
 - `Sources/STOWikiCompanion/FleetOperationsFeatures.swift`: local duty-officer roster, custom cooldown/event timers, and inventory/resource checklist.
 - `Sources/STOWikiCompanion/ProgressionEconomyFeatures.swift`: reputation tier/marks tracker, fleet holding project board, and manually maintained Exchange price notebook.
 - `Sources/STOWikiCompanion/AdvancedToolsFeatures.swift`: structured ship loadout slots and comparisons, crafting material planner, event campaign tracker, and importable offline wiki catalog.
+- `Sources/STOWikiCompanion/LoadoutSharingFeatures.swift`: versioned JSON loadout archives and opt-in local campaign start/end reminders.
 - `project.yml`: XcodeGen project definition, targeting iOS 17+.
 - `scripts/sync_stowiki.py`: exports main-namespace page text, recent changes, and uploaded-media metadata; downloads media files from approved source hosts.
 - `.github/workflows/sync-wiki.yml`: scheduled mirror and manual sync.
