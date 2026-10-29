@@ -174,6 +174,9 @@ struct CompanionHubView: View {
         ("Duty Officers", "person.3"),
         ("Cooldowns", "timer"),
         ("Inventory", "shippingbox"),
+        ("Reputation", "medal"),
+        ("Fleet Projects", "building.2"),
+        ("Exchange", "chart.line.uptrend.xyaxis"),
         ("Progress", "checklist")
     ]
 
@@ -213,6 +216,9 @@ struct CompanionHubView: View {
                         case "Duty Officers": DutyOfficerRosterView()
                         case "Cooldowns": CooldownPlannerView()
                         case "Inventory": InventoryChecklistView()
+                        case "Reputation": ReputationManagerView()
+                        case "Fleet Projects": FleetProjectBoardView()
+                        case "Exchange": ExchangeNotebookView()
                         case "Progress": ProgressTrackerView()
                         default: CompanionOverviewView(onSelect: { selectedSection = $0 })
                         }
@@ -265,6 +271,9 @@ private struct CompanionOverviewView: View {
                     dashboardLink("Duty Officers", subtitle: "Roster, department, rarity, and assignments", icon: "person.3")
                     dashboardLink("Cooldowns", subtitle: "Custom timers for projects, crafting, and events", icon: "timer")
                     dashboardLink("Inventory", subtitle: "Track resources and target quantities", icon: "shippingbox")
+                    dashboardLink("Reputation", subtitle: "Track tiers, marks, and active daily projects", icon: "medal")
+                    dashboardLink("Fleet Projects", subtitle: "Monitor holdings, contributions, and goals", icon: "building.2")
+                    dashboardLink("Exchange", subtitle: "Record EC prices and compare batch values", icon: "chart.line.uptrend.xyaxis")
                     dashboardLink("Progress", subtitle: "Track missions, endeavors, events, and reputation", icon: "checklist")
                 }
             }
