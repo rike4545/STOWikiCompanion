@@ -171,6 +171,9 @@ struct CompanionHubView: View {
         ("Traits & Gear", "sparkles"),
         ("Build Planner", "wrench.and.screwdriver"),
         ("Captains", "person.crop.rectangle.stack"),
+        ("Duty Officers", "person.3"),
+        ("Cooldowns", "timer"),
+        ("Inventory", "shippingbox"),
         ("Progress", "checklist")
     ]
 
@@ -207,6 +210,9 @@ struct CompanionHubView: View {
                         case "Traits & Gear": TraitsEquipmentLibraryView()
                         case "Build Planner": BuildPlannerView()
                         case "Captains": CaptainRosterView()
+                        case "Duty Officers": DutyOfficerRosterView()
+                        case "Cooldowns": CooldownPlannerView()
+                        case "Inventory": InventoryChecklistView()
                         case "Progress": ProgressTrackerView()
                         default: CompanionOverviewView(onSelect: { selectedSection = $0 })
                         }
@@ -256,6 +262,9 @@ private struct CompanionOverviewView: View {
                     dashboardLink("Traits & Gear", subtitle: "Quick-reference traits, consoles, weapons, and equipment", icon: "sparkles")
                     dashboardLink("Build Planner", subtitle: "Save weapons, consoles, traits, and notes", icon: "wrench.and.screwdriver")
                     dashboardLink("Captains", subtitle: "Maintain multiple character profiles", icon: "person.crop.rectangle.stack")
+                    dashboardLink("Duty Officers", subtitle: "Roster, department, rarity, and assignments", icon: "person.3")
+                    dashboardLink("Cooldowns", subtitle: "Custom timers for projects, crafting, and events", icon: "timer")
+                    dashboardLink("Inventory", subtitle: "Track resources and target quantities", icon: "shippingbox")
                     dashboardLink("Progress", subtitle: "Track missions, endeavors, events, and reputation", icon: "checklist")
                 }
             }
