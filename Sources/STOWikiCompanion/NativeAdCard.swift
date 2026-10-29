@@ -20,28 +20,25 @@ final class AdMobConsentManager: ObservableObject {
         didStartConsentFlow = true
 
         let parameters = RequestParameters()
-        ConsentInformation.shared.requestConsentInfoUpdate(with: parameters) { [weak self] error in
-            Task { @MainActor in
-                guard let self else { return }
-                if let error {
-                    print("AdMob consent information update failed: \(error.localizedDescription)")
-                }
-
-                do {
-                    try await ConsentForm.loadAndPresentIfRequired(from: nil)
-                } catch {
-                    print("AdMob consent form could not be presented: \(error.localizedDescription)")
-                }
-
-                self.privacyOptionsRequired =
-                    ConsentInformation.shared.privacyOptionsRequirementStatus == .required
-                self.canRequestAds = ConsentInformation.shared.canRequestAds
-
-                guard self.canRequestAds, !self.didStartAdsSDK else { return }
-                self.didStartAdsSDK = true
-                await MobileAds.shared.start()
-            }
+        do {
+            try await ConsentInformation.shared.requestConsentInfoUpdate(with: parameters)
+        } catch {
+            print("AdMob consent information update failed: \(error.localizedDescription)")
         }
+
+        do {
+            try await ConsentForm.loadAndPresentIfRequired(from: nil)
+        } catch {
+            print("AdMob consent form could not be presented: \(error.localizedDescription)")
+        }
+
+        privacyOptionsRequired =
+            ConsentInformation.shared.privacyOptionsRequirementStatus == .required
+        canRequestAds = ConsentInformation.shared.canRequestAds
+
+        guard canRequestAds, !didStartAdsSDK else { return }
+        didStartAdsSDK = true
+        await MobileAds.shared.start()
     }
 
     func presentPrivacyOptions() async {
@@ -182,11 +179,22 @@ private struct NativeAdViewRepresentable: UIViewRepresentable {
         topRow.alignment = .top
 
         let callToAction = UIButton(type: .system)
-        callToAction.titleLabel?.font = .systemFont(ofSize: 13, weight: .bold)
-        callToAction.setTitleColor(.black, for: .normal)
-        callToAction.backgroundColor = UIColor(red: 0.98, green: 0.70, blue: 0.34, alpha: 1)
-        callToAction.layer.cornerRadius = 9
-        callToAction.contentEdgeInsets = UIEdgeInsets(top: 8, left: 14, bottom: 8, right: 14)
+        var buttonConfiguration = UIButton.Configuration.filled()
+        buttonConfiguration.baseBackgroundColor = UIColor(red: 0.98, green: 0.70, blue: 0.34, alpha: 1)
+        buttonConfiguration.baseForegroundColor = .black
+        buttonConfiguration.contentInsets = NSDirectionalEdgeInsets(
+            top: 8,
+            leading: 14,
+            bottom: 8,
+            trailing: 14
+        )
+        buttonConfiguration.cornerStyle = .large
+        buttonConfiguration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var updated = attributes
+            updated.font = .systemFont(ofSize: 13, weight: .bold)
+            return updated
+        }
+        callToAction.configuration = buttonConfiguration
         // The SDK's NativeAdView must handle interaction tracking.
         callToAction.isUserInteractionEnabled = false
 
@@ -217,7 +225,9 @@ private struct NativeAdViewRepresentable: UIViewRepresentable {
         (adView.bodyView as? UILabel)?.text = nativeAd.body
         (adView.advertiserView as? UILabel)?.text = nativeAd.advertiser
         (adView.iconView as? UIImageView)?.image = nativeAd.icon?.image
-        (adView.callToActionView as? UIButton)?.setTitle(nativeAd.callToAction, for: .normal)
+        if let button = adView.callToActionView as? UIButton {
+            button.configuration?.title = nativeAd.callToAction
+        }
 
         adView.bodyView?.isHidden = nativeAd.body == nil
         adView.advertiserView?.isHidden = nativeAd.advertiser == nil

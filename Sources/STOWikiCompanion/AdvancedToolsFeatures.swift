@@ -245,7 +245,7 @@ struct AdvancedLoadoutView: View {
         }
         .sheet(isPresented: $showingComparison) { LoadoutComparisonView() }
         .fileExporter(isPresented: $exporting, document: archiveDocument, contentType: .json, defaultFilename: "STOWiki-Loadouts") { result in
-            switch result { case .success(let url): archiveMessage = "Exported loadouts to \\(url.lastPathComponent)."; case .failure(let error): archiveMessage = error.localizedDescription }
+            switch result { case .success(let url): archiveMessage = "Exported loadouts to \(url.lastPathComponent)."; case .failure(let error): archiveMessage = error.localizedDescription }
         }
         .fileImporter(isPresented: $showingImporter, allowedContentTypes: [.json], allowsMultipleSelection: false) { result in
             do {
