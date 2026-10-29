@@ -157,6 +157,7 @@ struct WikiSearchView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingAppearance = false
+    @State private var showingCompanion = false
     @State private var showingBardArchive = false
     @State private var titleTapCount = 0
 
@@ -221,6 +222,9 @@ struct WikiSearchView: View {
             .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .bottom) {
                 footer
+            }
+            .sheet(isPresented: $showingCompanion) {
+                CompanionHubView()
             }
             .sheet(isPresented: $showingAppearance) {
                 AppearanceSettingsView()
@@ -426,50 +430,56 @@ struct WikiSearchView: View {
                 .padding(.bottom, 3)
 
                 ForEach(Array(results.enumerated()), id: \.element.id) { index, hit in
-                    Link(destination: hit.url) {
-                        HStack(alignment: .top, spacing: 12) {
-                            RoundedRectangle(cornerRadius: 3)
-                                .fill(theme.accent)
-                                .frame(width: 4)
-                                .padding(.vertical, 3)
-
-                            VStack(alignment: .leading, spacing: 7) {
-                                Text(hit.title)
-                                    .font(.system(.headline, design: .rounded))
-                                    .foregroundStyle(.white)
-                                    .multilineTextAlignment(.leading)
-
-                                if !hit.readableSnippet.isEmpty {
-                                    Text(hit.readableSnippet)
-                                        .font(.subheadline)
-                                        .foregroundStyle(.white.opacity(0.68))
-                                        .lineLimit(3)
+                    HStack(spacing: 8) {
+                        Link(destination: hit.url) {
+                            HStack(alignment: .top, spacing: 12) {
+                                RoundedRectangle(cornerRadius: 3)
+                                    .fill(theme.accent)
+                                    .frame(width: 4)
+                                    .padding(.vertical, 3)
+                                VStack(alignment: .leading, spacing: 7) {
+                                    Text(hit.title)
+                                        .font(.system(.headline, design: .rounded))
+                                        .foregroundStyle(.white)
                                         .multilineTextAlignment(.leading)
+                                    if !hit.readableSnippet.isEmpty {
+                                        Text(hit.readableSnippet)
+                                            .font(.subheadline)
+                                            .foregroundStyle(.white.opacity(0.68))
+                                            .lineLimit(3)
+                                            .multilineTextAlignment(.leading)
+                                    }
+                                    if let words = hit.wordcount {
+                                        Text("\(words) WORDS")
+                                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                            .tracking(0.7)
+                                            .foregroundStyle(theme.secondaryAccent)
+                                    }
                                 }
-
-                                if let words = hit.wordcount {
-                                    Text("\(words) WORDS")
-                                        .font(.system(size: 10, weight: .medium, design: .monospaced))
-                                        .tracking(0.7)
-                                        .foregroundStyle(theme.secondaryAccent)
-                                }
+                                Spacer(minLength: 0)
+                                Image(systemName: "arrow.up.right")
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(theme.accent)
+                                    .padding(.top, 3)
                             }
-
-                            Spacer(minLength: 0)
-
-                            Image(systemName: "arrow.up.right")
-                                .font(.caption.weight(.bold))
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        Button {
+                            CompanionStore.shared.toggleBookmark(title: hit.title, snippet: hit.readableSnippet)
+                        } label: {
+                            Image(systemName: CompanionStore.shared.isBookmarked(hit.title) ? "bookmark.fill" : "bookmark")
+                                .font(.system(size: 16, weight: .semibold))
                                 .foregroundStyle(theme.accent)
-                                .padding(.top, 3)
+                                .frame(width: 36, height: 42)
                         }
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(theme.surface, in: theme.panelShape)
-                        .overlay {
-                            theme.panelShape.stroke(theme.secondaryAccent.opacity(0.16), lineWidth: 1)
-                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(CompanionStore.shared.isBookmarked(hit.title) ? "Remove bookmark" : "Save for offline reference")
                     }
-                    .buttonStyle(.plain)
+                    .padding(14)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(theme.surface, in: theme.panelShape)
+                    .overlay { theme.panelShape.stroke(theme.secondaryAccent.opacity(0.16), lineWidth: 1) }
 
                     if index == 2 {
                         NativeAdCard()
@@ -538,7 +548,7 @@ struct WikiSearchView: View {
             guard (200..<300).contains(http.statusCode) else {
                 throw WikiAPIError.httpStatus(http.statusCode)
             }
-            results = try JSONDecoder().decode(SearchResponse.self, from: data).query?.search ?? []
+            results = try JSONDecoder().decode(SearchResponse.self, from: data).query?.search ?? []\n            CompanionStore.shared.recordSearch(term)
             if results.isEmpty {
                 errorMessage = nil
             }
