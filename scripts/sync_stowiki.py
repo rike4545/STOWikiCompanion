@@ -18,7 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-API_URL = os.environ.get("STOWIKI_API_URL", "https://stowiki.net/api.php")
+API_URL = os.environ.get("STOWIKI_API_URL", "https://stowiki.net/w/api.php")
 SITE_URL = "https://stowiki.net/"
 USER_AGENT = "STOWikiCompanionMirror/1.0 (GitHub Actions; contact via https://github.com/rike4545/STOWikiCompanion)"
 OUT = Path("mirror")
