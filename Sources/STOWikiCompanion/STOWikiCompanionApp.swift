@@ -512,7 +512,7 @@ struct WikiSearchView: View {
         errorMessage = nil
         defer { isLoading = false }
 
-        var components = URLComponents(string: "https://stowiki.net/api.php")!
+        var components = URLComponents(string: "https://stowiki.net/w/api.php")!
         components.queryItems = [
             URLQueryItem(name: "action", value: "query"),
             URLQueryItem(name: "list", value: "search"),
