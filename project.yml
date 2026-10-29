@@ -23,6 +23,7 @@ targets:
       - package: UserMessagingPlatform
         product: UserMessagingPlatform
     info:
+      path: Info.plist
       properties:
         GADApplicationIdentifier: "ca-app-pub-9917450718827221~5382780963"
         SKAdNetworkItems:
