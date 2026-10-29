@@ -166,6 +166,7 @@ struct CompanionHubView: View {
 
     private let sections = [
         ("Overview", "square.grid.2x2"),
+        ("Command Center", "command"),
         ("Offline Wiki", "bookmark"),
         ("Starships", "airplane"),
         ("Traits & Gear", "sparkles"),
@@ -212,6 +213,7 @@ struct CompanionHubView: View {
 
                     Group {
                         switch selectedSection {
+                        case "Command Center": CaptainCommandDashboard()
                         case "Offline Wiki": OfflineLibraryView()
                         case "Starships": StarshipCatalogView()
                         case "Traits & Gear": TraitsEquipmentLibraryView()
@@ -242,6 +244,9 @@ struct CompanionHubView: View {
             }
             .toolbarBackground(theme.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .onReceive(NotificationCenter.default.publisher(for: .stowikiSelectCompanionSection)) { notification in
+                if let section = notification.object as? String, sections.contains(where: { $0.0 == section }) { selectedSection = section }
+            }
         }
         .preferredColorScheme(.dark)
     }
