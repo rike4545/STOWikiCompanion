@@ -9,10 +9,17 @@ Native iOS companion and scheduled content mirror for https://stowiki.net/.
 - `scripts/sync_stowiki.py`: exports main-namespace page text, recent changes, and uploaded-media metadata; downloads media files from approved source hosts.
 - `.github/workflows/sync-wiki.yml`: scheduled mirror and manual sync.
 - Workflow artifact `stowiki-mirror-N`: generated page export, downloaded media, asset manifest, recent changes, and mirror summary.
+- `CONTENT-LICENSE.md`: attribution, ShareAlike, and third-party asset guidance.
+
+## Content license and attribution
+
+The wiki states that covered contributions are licensed under [Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/legalcode.en). The mirror is designed to preserve source article URLs and provenance. When redistributing covered material, provide appropriate credit, link to the license, indicate changes, and license adapted material under CC BY-SA 4.0 or a compatible license. See [`CONTENT-LICENSE.md`](CONTENT-LICENSE.md).
+
+**Not every file on the wiki is necessarily covered by that license.** Images, screenshots, game assets, logos, externally embedded media, and trademarks may have separate rights or restrictions. Public accessibility or successful downloading does not establish permission to redistribute an asset. Review source notices before distributing it in the app. This project is independent and is not official or endorsed by Star Trek Online, Arc Games, or their affiliates.
 
 ## Automatic updates
 
-GitHub Actions runs every 12 hours and can be started manually from **Actions → Mirror STO Wiki content and media → Run workflow**. Each successful run uploads a downloadable mirror artifact retained for 90 days. The mirror is generated at runtime rather than committed to Git history, avoiding huge binary files and noisy commits.
+GitHub Actions is configured to run every 12 hours and can be started manually from **Actions → Mirror STO Wiki content and media → Run workflow**. Each successful run uploads a downloadable mirror artifact retained for 90 days. The mirror is generated at runtime rather than committed to Git history, avoiding huge binary files and noisy commits.
 
 To download it, open the workflow run in GitHub Actions and use the **Artifacts** section at the bottom of the run summary. The artifact contains:
 
