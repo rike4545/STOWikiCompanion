@@ -270,6 +270,21 @@ struct WikiSearchView: View {
                 Spacer(minLength: 0)
 
                 Button {
+                    showingCompanion = true
+                } label: {
+                    Image(systemName: "square.grid.2x2.fill")
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundStyle(theme.secondaryAccent)
+                        .frame(width: 46, height: 46)
+                        .background(theme.surface, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                        .overlay {
+                            RoundedRectangle(cornerRadius: 15, style: .continuous)
+                                .stroke(theme.secondaryAccent.opacity(0.35), lineWidth: 1)
+                        }
+                }
+                .accessibilityLabel("Open companion features")
+
+                Button {
                     showingAppearance = true
                 } label: {
                     Image(systemName: "slider.horizontal.3")
