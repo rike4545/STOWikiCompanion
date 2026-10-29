@@ -33,8 +33,8 @@ struct ExchangePriceRecord: Identifiable, Codable, Hashable {
     var updatedAt = Date()
 
     var spread: Int { sellPrice - buyPrice }
-    var totalBuyCost: Int { buyPrice * quantity }
-    var totalSellValue: Int { sellPrice * quantity }
+    var totalBuyCost: Int { buyPrice.multipliedReportingOverflow(by: quantity).overflow ? Int.max : buyPrice * quantity }
+    var totalSellValue: Int { sellPrice.multipliedReportingOverflow(by: quantity).overflow ? Int.max : sellPrice * quantity }
 }
 
 @MainActor
