@@ -58,7 +58,7 @@ final class CampaignReminderService {
 
         let now = Date()
         if campaign.startDate > now {
-            var start = UNMutableNotificationContent()
+            let start = UNMutableNotificationContent()
             start.title = "Campaign begins"
             start.body = "\(campaign.name) starts today. Check your participation and reward goals."
             start.sound = .default
@@ -68,7 +68,7 @@ final class CampaignReminderService {
         }
 
         if campaign.endDate > now {
-            var end = UNMutableNotificationContent()
+            let end = UNMutableNotificationContent()
             end.title = "Campaign ending soon"
             end.body = "\(campaign.name) is scheduled to end tomorrow. Review your progress."
             end.sound = .default
