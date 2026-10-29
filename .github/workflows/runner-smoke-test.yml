@@ -1,0 +1,17 @@
+name: Runner smoke test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Confirm hosted runner works
+        run: |
+          echo "GitHub-hosted runner started successfully"
+          python3 --version
