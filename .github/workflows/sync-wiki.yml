@@ -1,0 +1,38 @@
+name: Sync STO Wiki metadata
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 */12 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stowiki-metadata-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Refresh recent changes and asset manifest
+        run: python scripts/sync_stowiki.py
+      - name: Commit metadata changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "No wiki metadata changes."
+          else
+            git commit -m "chore: sync STO Wiki metadata"
+            git push
+          fi
