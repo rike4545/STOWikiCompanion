@@ -135,6 +135,8 @@ struct WikiSearchView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var showingAppearance = false
+    @State private var showingBardArchive = false
+    @State private var titleTapCount = 0
 
     var body: some View {
         NavigationStack {
@@ -178,6 +180,9 @@ struct WikiSearchView: View {
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
             }
+            .sheet(isPresented: $showingBardArchive) {
+                BardArchiveView()
+            }
         }
         .tint(theme.accent)
     }
@@ -200,6 +205,15 @@ struct WikiSearchView: View {
                     Text("STO Wiki")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            titleTapCount += 1
+                            if titleTapCount >= 7 {
+                                titleTapCount = 0
+                                showingBardArchive = true
+                            }
+                        }
+                        .accessibilityHint("Tap seven times to reveal a hidden archive.")
                 }
 
                 Spacer(minLength: 0)
